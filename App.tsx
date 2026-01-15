@@ -36,9 +36,17 @@ const App: React.FC = () => {
     ? articles.filter(a => a.category?.toLowerCase() === activeCategory.toLowerCase())
     : articles;
 
-  const featuredArticle = filteredArticles.find(a => a.isFeatured) || filteredArticles[0];
-  const gridArticles = filteredArticles.filter(a => a.id !== featuredArticle?.id);
-  const sidebarArticles = articles.slice(0, 5); // Just pick first 5 for sidebar "Mais Lidas" mockup
+  // Pegamos os 3 primeiros para o carrossel de destaques se não houver filtro
+  // Se houver filtro, mostramos apenas o primeiro da categoria como destaque (ou nenhum se preferir)
+  const featuredArticles = activeCategory 
+    ? filteredArticles.slice(0, 1) 
+    : articles.filter(a => a.isFeatured).length > 0 
+      ? articles.filter(a => a.isFeatured).slice(0, 3) 
+      : articles.slice(0, 3);
+
+  const featuredIds = new Set(featuredArticles.map(a => a.id));
+  const gridArticles = filteredArticles.filter(a => !featuredIds.has(a.id));
+  const sidebarArticles = articles.slice(0, 5); 
 
   if (loading) {
     return (
@@ -62,8 +70,8 @@ const App: React.FC = () => {
             </h2>
         </div>
 
-        {/* Featured Hero Section */}
-        {featuredArticle && <Hero article={featuredArticle} />}
+        {/* Featured Hero Carousel Section */}
+        {featuredArticles.length > 0 && <Hero articles={featuredArticles} />}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
@@ -112,22 +120,6 @@ const App: React.FC = () => {
                 {sidebarArticles.map((article, idx) => (
                    <ArticleCard key={`sidebar-${article.id}-${idx}`} article={article} variant="compact" />
                 ))}
-              </div>
-            </div>
-
-            {/* Newsletter Widget */}
-            <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-black p-8 rounded-xl text-white text-center">
-              <h3 className="text-2xl font-bold mb-2">Nerd AI Insider</h3>
-              <p className="text-purple-200 text-sm mb-6">Receba as notícias mais quentes diretamente no seu e-mail. Sem spam, apenas conteúdo geek.</p>
-              <div className="space-y-3">
-                <input 
-                  type="email" 
-                  placeholder="Seu melhor e-mail" 
-                  className="w-full px-4 py-3 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#be80ff]"
-                />
-                <button className="w-full bg-[#be80ff] text-white font-bold py-3 rounded hover:bg-purple-400 transition transform hover:scale-105">
-                  INSCREVER-SE
-                </button>
               </div>
             </div>
 
